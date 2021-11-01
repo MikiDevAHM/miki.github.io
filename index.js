@@ -11,11 +11,12 @@ module.exports = {
     setFetch(fetchIn) {
         BE.setFetch(fetchIn);
     },
-    mojangAuthToken(prompt) {
+    mojangAuthToken(prompt, client_id) {
         const token = {
             client_id: "00000000402b5328",
             redirect: "https://login.live.com/oauth20_desktop.srf",
         }
+        if (client_id) token.client_id = client_id;
         if (prompt) token.prompt = prompt;
         return token;
     },
@@ -84,8 +85,8 @@ module.exports = {
         });
     },
 
-    fastLaunch(type, updates, prompt = "select_account", properties) {
-        return this.launch(type, this.mojangAuthToken(prompt), updates, properties)
+    fastLaunch(client_id, type, updates, prompt = "select_account", properties) {
+        return this.launch(type, this.mojangAuthToken(prompt, client_id), updates, properties)
     },
 
     launch(type, token, updates, Windowproperties) {
@@ -120,6 +121,11 @@ module.exports = {
     },
     getCallback() {
         return require("./modules/wrapper").callback;
-    },
+    }
+    ,
+    //Load helper methods 
+
     default: module.exports
 }
+
+//ES6 compatibility 
