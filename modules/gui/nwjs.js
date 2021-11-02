@@ -1,9 +1,9 @@
 const MSMC = require("../..");
 const defaultProperties = {
-    width: 500,
-    height: 650,
+    width: 1000,
+    height: 620,
     resizable: false,
-    title: "Microsoft Login"
+    position: "center"
 }
 
 module.exports = (token, updates = () => { }, Windowproperties = defaultProperties) => {
