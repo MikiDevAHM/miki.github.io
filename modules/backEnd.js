@@ -1,9 +1,9 @@
 //Load optional dependencies
-/**@type {fetch} */
-var FETCH = require("./fetch");
 try { var http = require("http"); } catch (er) { console.warn("[MSMC]: Some sign in methods may not work due to missing http server support in enviroment"); };
+try { var FETCH = require("node-fetch"); } catch (err) { try { FETCH = fetch; } catch { }; };
 
-
+//Check if fetch is defined
+if (!FETCH) { console.warn("[MSMC]: Could not automatically determine which version of fetch to use.\n[MSMC]: Please use 'setFetch' to set this property manually"); };
 
 //This needs to be apart or we could end up with a memory leak!
 var app;
@@ -32,13 +32,16 @@ module.exports = {
     //Used internally to get fetch when needed
 
     getFetch() {
-
         return FETCH;
     },
 
     //Load constants 
     errorCheck() {
-
+        if (!FETCH) {
+            console.error("[MSMC]: Could not automatically determine which version of fetch to use.");
+            console.error("[MSMC]: Please use 'setFetch' to set this property manually");
+            return true;
+        }
         if (typeof FETCH !== "function") {
             console.error("[MSMC]: The version of fetch provided is not a function!");
             return true;
@@ -91,7 +94,7 @@ module.exports = {
     //Main Login flow implementation
     async get(body, updates = () => { }) {
         const percent = 100 / 5;
-        if (self.errorCheck()) { return Promise.reject("[MSMC]: Error : no or invalid version of fetch available!"); };
+        if (this.errorCheck()) { return Promise.reject("[MSMC]: Error : no or invalid version of fetch available!"); };
         updates({ type: "Starting" });
 
         //console.log(Params); //debug
@@ -108,12 +111,11 @@ module.exports = {
         };
 
         loadBar(percent * 0, "Getting Login Token");
-        var MS_Raw = await FETCH("https://login.live.com/oauth20_token.srf", {
-            method: "post", body: body, headers: { "Content-Type": "application/x-www-form-urlencoded" }
-        })
-
-        if (webCheck(MS_Raw)) return error("Could not log into Microsoft", "Login.Fail.MS", rxboxlive);
-        var MS = await MS_Raw.json();
+        var MS = await (
+            await FETCH("https://login.live.com/oauth20_token.srf", {
+                method: "post", body: body, headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            })
+        ).json();
 
         //console.log(MS); //debug
         if (MS.error) {
@@ -206,12 +208,11 @@ module.exports = {
         profile._msmc = { refresh: MS.refresh_token, expires_by: experationDate, mcToken: MCauth.access_token };
         if (profile.error) {
             profile._msmc.demo = true;
-            return ({ type: "DemoUser", access_token: MCauth.access_token, profile: { _msmc: profile._msmc, id: MCauth.username, name: 'Player' }, translationString: "Login.Success.DemoUser", reason: "User does not own minecraft", getXbox: () => self.xboxProfile(XBLToken) });
+            return ({ type: "DemoUser", access_token: MCauth.access_token, profile: { _msmc: profile._msmc, id: MCauth.username, name: 'Player' }, translationString : "Login.Success.DemoUser", reason: "User does not own minecraft", getXbox: () => this.xboxProfile(XBLToken) });
         };
 
         loadBar(100, "Done!");
-        return ({ type: "Success", access_token: MCauth.access_token, profile: profile, getXbox: (updates) => self.xboxProfile(XBLToken, updates), translationString: "Login.Success.User" });
+        return ({ type: "Success", access_token: MCauth.access_token, profile: profile, getXbox: (updates) => this.xboxProfile(XBLToken, updates), translationString : "Login.Success.User" });
     }
 }
 
-const self = module.exports; 
