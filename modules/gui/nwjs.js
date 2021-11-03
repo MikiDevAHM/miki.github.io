@@ -1,7 +1,7 @@
 const MSMC = require("../..");
 const defaultProperties = {
     width: 1000,
-    height: 620,
+    height: 650,
     resizable: false,
     position: "center"
 }
