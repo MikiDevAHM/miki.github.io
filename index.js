@@ -114,7 +114,7 @@ module.exports = {
             } else if (!!process && !!process.versions && !!process.versions.nw) {
                 type = 'nwjs';
             } else {
-                type = 'browser';
+                type = 'raw';
             }
         }
         switch (type) {
